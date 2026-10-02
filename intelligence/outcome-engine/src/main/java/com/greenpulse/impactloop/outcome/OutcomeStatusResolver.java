@@ -6,13 +6,27 @@ public class OutcomeStatusResolver {
 
     public OutcomeStatus resolve(
             int beforeIncidents,
-            double observedReductionPercent
+            int afterIncidents,
+            double observedReduction
     ) {
+
+        // No valid baseline for comparison.
         if (beforeIncidents <= 0) {
             return OutcomeStatus.UNCLEAR;
         }
 
-        if (observedReductionPercent >= POSITIVE_THRESHOLD_PERCENT) {
+        // Invalid incident count.
+        if (afterIncidents < 0) {
+            return OutcomeStatus.UNCLEAR;
+        }
+
+        // Reduction should never be treated as positive
+        // when incidents increased.
+        if (afterIncidents > beforeIncidents) {
+            return OutcomeStatus.WEAK;
+        }
+
+        if (observedReduction >= POSITIVE_THRESHOLD_PERCENT) {
             return OutcomeStatus.POSITIVE;
         }
 
