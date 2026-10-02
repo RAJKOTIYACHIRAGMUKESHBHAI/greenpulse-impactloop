@@ -171,6 +171,7 @@ Outcome represents the observed result associated with an intervention.
 |---|---|---|---|
 | outcomeId | String | Yes | Unique outcome identifier |
 | interventionId | String | Yes | Related Intervention |
+| outcome | String | Yes | POSITIVE, WEAK, or UNCLEAR |
 | beforeIncidents | Number | Yes | Comparable incidents before intervention |
 | afterIncidents | Number | Yes | Comparable incidents after intervention |
 | observedReduction | Number | Yes | Observed percentage reduction |

@@ -12,10 +12,6 @@ Do not rename fields, remove required fields, or change endpoint behavior withou
 
 # 2. Base API
 
-
-**replace karke ye karo:**
-
-```markdown
 Development:
 
 ```text
