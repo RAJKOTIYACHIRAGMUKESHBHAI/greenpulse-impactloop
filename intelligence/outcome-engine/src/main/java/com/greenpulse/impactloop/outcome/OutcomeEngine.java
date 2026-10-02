@@ -9,12 +9,16 @@ public class OutcomeEngine {
     }
 
     public Outcome calculateOutcome(
+            String outcomeId,
+            String interventionId,
             int beforeIncidents,
             int afterIncidents,
             OutcomeStatus outcomeStatus,
+            Double durationReduction,
             ConfidenceLevel confidence,
-            boolean recurrence,
-            NextAction nextAction
+            boolean recurring,
+            NextAction nextAction,
+            String createdAt
     ) {
 
         double observedReduction =
@@ -24,11 +28,17 @@ public class OutcomeEngine {
                 );
 
         return new Outcome(
+                outcomeId,
+                interventionId,
                 outcomeStatus,
+                beforeIncidents,
+                afterIncidents,
                 observedReduction,
+                durationReduction,
                 confidence,
-                recurrence,
-                nextAction
+                recurring,
+                nextAction,
+                createdAt
         );
     }
 }
