@@ -24,4 +24,16 @@ public class IssueController {
     ) {
         return issueService.createIssue(request);
     }
+
+    @GetMapping
+    public java.util.List<IssueResponse> getAllIssues() {
+        return issueService.getAllIssues();
+    }
+
+    @GetMapping("/{issueId}")
+    public IssueResponse getIssueById(
+            @PathVariable String issueId
+    ) {
+        return issueService.getIssueById(issueId);
+    }
 }
