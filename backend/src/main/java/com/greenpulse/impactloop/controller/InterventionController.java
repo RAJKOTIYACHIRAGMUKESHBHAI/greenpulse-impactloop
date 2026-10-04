@@ -8,6 +8,8 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/interventions")
 public class InterventionController {
@@ -24,6 +26,13 @@ public class InterventionController {
             @Valid @RequestBody CreateInterventionRequest request
     ) {
         return interventionService.createIntervention(request);
+    }
+
+    @GetMapping
+    public List<InterventionResponse> getInterventionsByIssueId(
+            @RequestParam String issueId
+    ) {
+        return interventionService.getInterventionsByIssueId(issueId);
     }
 
     @GetMapping("/{interventionId}")
