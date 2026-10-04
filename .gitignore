@@ -144,3 +144,6 @@ vite.config.ts.timestamp-*
 
 # IDE settings
 .idea/
+
+# Maven build output
+**/target/
