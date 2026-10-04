@@ -4,6 +4,12 @@ import com.greenpulse.impactloop.dto.CreateOutcomeRequest;
 import com.greenpulse.impactloop.dto.OutcomeResponse;
 import com.greenpulse.impactloop.entity.Outcome;
 import com.greenpulse.impactloop.repository.OutcomeRepository;
+import com.greenpulse.impactloop.outcome.ConfidenceLevel;
+import com.greenpulse.impactloop.outcome.NextAction;
+import com.greenpulse.impactloop.outcome.OutcomeEngine;
+import com.greenpulse.impactloop.outcome.OutcomeStatus;
+import com.greenpulse.impactloop.outcome.OutcomeStatusResolver;
+import com.greenpulse.impactloop.outcome.ConfidenceResolver;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -15,45 +21,83 @@ import java.util.UUID;
 public class OutcomeService {
 
     private final OutcomeRepository outcomeRepository;
+    private final OutcomeEngine outcomeEngine;
+    private final OutcomeStatusResolver outcomeStatusResolver;
+    private final ConfidenceResolver confidenceResolver;
 
     public OutcomeService(OutcomeRepository outcomeRepository) {
         this.outcomeRepository = outcomeRepository;
+        this.outcomeEngine = new OutcomeEngine();
+        this.outcomeStatusResolver = new OutcomeStatusResolver();
+        this.confidenceResolver = new ConfidenceResolver();
     }
 
     public OutcomeResponse createOutcome(CreateOutcomeRequest request) {
         String outcomeId = "OUT-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
-        
-        int beforeIncidents = request.getBeforeIncidents() != null ? request.getBeforeIncidents() : 0;
-        int afterIncidents = request.getAfterIncidents() != null ? request.getAfterIncidents() : 0;
-        
-        // Calculate observed reduction if not provided
-        double observedReduction = request.getObservedReduction() != null 
-            ? request.getObservedReduction() 
-            : calculateObservedReduction(beforeIncidents, afterIncidents);
-        
-        // Validate and set outcome status
-        String outcomeStatus = request.getOutcome() != null ? request.getOutcome() : determineOutcomeStatus(observedReduction);
-        
-        // Determine confidence based on data quality
-        String confidence = request.getConfidence() != null 
-            ? request.getConfidence() 
-            : determineConfidence(beforeIncidents, afterIncidents);
-        
-        boolean recurring = request.getRecurring() != null ? request.getRecurring() : false;
-        String nextAction = request.getNextAction() != null ? request.getNextAction() : determineNextAction(outcomeStatus, confidence);
-        
+
+        int beforeIncidents = request.getBeforeIncidents() != null
+                ? request.getBeforeIncidents()
+                : 0;
+
+        int afterIncidents = request.getAfterIncidents() != null
+                ? request.getAfterIncidents()
+                : 0;
+
+        double observedReduction =
+                new com.greenpulse.impactloop.outcome.ObservedReductionCalculator()
+                        .calculate(beforeIncidents, afterIncidents);
+
+        OutcomeStatus outcomeStatus =
+                outcomeStatusResolver.resolve(
+                        beforeIncidents,
+                        afterIncidents,
+                        observedReduction
+                );
+
+        ConfidenceLevel confidence =
+                confidenceResolver.resolve(
+                        beforeIncidents,
+                        afterIncidents
+                );
+
+        NextAction nextAction;
+
+        if (confidence == ConfidenceLevel.LOW) {
+            nextAction = NextAction.COLLECT_MORE_DATA;
+        } else if (outcomeStatus == OutcomeStatus.POSITIVE) {
+            nextAction = NextAction.MONITOR;
+        } else if (outcomeStatus == OutcomeStatus.UNCLEAR) {
+            nextAction = NextAction.REINSPECT;
+        } else {
+            nextAction = NextAction.STRUCTURAL_INSPECTION;
+        }
+
+        com.greenpulse.impactloop.outcome.Outcome intelligenceOutcome =
+                outcomeEngine.calculateOutcome(
+                        outcomeId,
+                        request.getInterventionId(),
+                        beforeIncidents,
+                        afterIncidents,
+                        outcomeStatus,
+                        request.getDurationReduction(),
+                        confidence,
+                        request.getRecurring() != null && request.getRecurring(),
+                        nextAction,
+                        Instant.now().toString()
+                );
+
         Outcome outcome = new Outcome(
-                outcomeId,
-                request.getInterventionId(),
-                beforeIncidents,
-                afterIncidents,
-                observedReduction,
-                request.getDurationReduction(),
-                outcomeStatus,
-                confidence,
-                recurring,
-                nextAction,
-                Instant.now().toString()
+                intelligenceOutcome.getOutcomeId(),
+                intelligenceOutcome.getInterventionId(),
+                intelligenceOutcome.getBeforeIncidents(),
+                intelligenceOutcome.getAfterIncidents(),
+                intelligenceOutcome.getObservedReduction(),
+                intelligenceOutcome.getDurationReduction(),
+                intelligenceOutcome.getOutcome().name(),
+                intelligenceOutcome.getConfidence().name(),
+                intelligenceOutcome.isRecurring(),
+                intelligenceOutcome.getNextAction().name(),
+                intelligenceOutcome.getCreatedAt()
         );
 
         outcomeRepository.save(outcome);
@@ -79,56 +123,12 @@ public class OutcomeService {
     public List<OutcomeResponse> getAllOutcomes() {
         List<Outcome> outcomes = outcomeRepository.findAll();
         List<OutcomeResponse> responses = new ArrayList<>();
-        
+
         for (Outcome outcome : outcomes) {
             responses.add(toResponse(outcome));
         }
-        
+
         return responses;
-    }
-
-    private double calculateObservedReduction(int beforeIncidents, int afterIncidents) {
-        if (beforeIncidents <= 0) {
-            return 0.0;
-        }
-        return ((beforeIncidents - afterIncidents) * 100.0) / beforeIncidents;
-    }
-
-    private String determineOutcomeStatus(double observedReduction) {
-        if (observedReduction >= 50.0) {
-            return "POSITIVE";
-        } else if (observedReduction >= 20.0) {
-            return "WEAK";
-        } else {
-            return "UNCLEAR";
-        }
-    }
-
-    private String determineConfidence(int beforeIncidents, int afterIncidents) {
-        // Confidence based on data completeness
-        if (beforeIncidents == 0 && afterIncidents == 0) {
-            return "LOW";
-        } else if (beforeIncidents < 3 || afterIncidents < 3) {
-            return "LOW";
-        } else if (beforeIncidents < 5 || afterIncidents < 5) {
-            return "MEDIUM";
-        } else {
-            return "HIGH";
-        }
-    }
-
-    private String determineNextAction(String outcomeStatus, String confidence) {
-        if ("LOW".equals(confidence)) {
-            return "COLLECT_MORE_DATA";
-        }
-        
-        if ("POSITIVE".equals(outcomeStatus)) {
-            return "MONITOR";
-        } else if ("UNCLEAR".equals(outcomeStatus)) {
-            return "REINSPECT";
-        } else {
-            return "STRUCTURAL_INSPECTION";
-        }
     }
 
     private OutcomeResponse toResponse(Outcome outcome) {
