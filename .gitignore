@@ -145,7 +145,7 @@ vite.config.ts.timestamp-*
 # Java / Maven generated output
 **/target/
 
-# IntelliJ IDEA local settings and workspace
+# IDE settings
 .idea/
 
 # Local deployment credentials and generated task definitions
