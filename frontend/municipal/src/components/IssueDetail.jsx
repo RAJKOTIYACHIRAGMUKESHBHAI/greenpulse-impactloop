@@ -29,7 +29,7 @@ export default function IssueDetail({ issueId, onBack }) {
 
       // Fetch interventions for this issue
       const intervResponse = await fetch(
-          `http://localhost:8080/api/v1/interventions?issueId=${issueId}`
+          `http://3.237.10.181:8080/api/v1/interventions?issueId=${issueId}`
       );
 
       if (intervResponse.ok) {
@@ -50,7 +50,7 @@ export default function IssueDetail({ issueId, onBack }) {
 
           try {
             const outcomeResponse = await fetch(
-                `http://localhost:8080/api/v1/outcomes`
+                `http://3.237.10.181:8080/api/v1/outcomes`
             );
 
             if (outcomeResponse.ok) {

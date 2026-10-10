@@ -6,7 +6,9 @@ import com.greenpulse.impactloop.service.EvidenceService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -25,6 +27,24 @@ public class EvidenceController {
             @Valid @RequestBody CreateEvidenceRequest request
     ) {
         return evidenceService.createEvidence(request);
+    }
+
+    @PostMapping("/upload")
+    @ResponseStatus(HttpStatus.CREATED)
+    public EvidenceResponse uploadEvidence(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("interventionId") String interventionId,
+            @RequestParam("type") String type,
+            @RequestParam(value = "latitude", required = false) Double latitude,
+            @RequestParam(value = "longitude", required = false) Double longitude
+    ) throws IOException {
+        return evidenceService.uploadEvidence(
+                file,
+                interventionId,
+                type,
+                latitude,
+                longitude
+        );
     }
 
     @GetMapping("/{evidenceId}")

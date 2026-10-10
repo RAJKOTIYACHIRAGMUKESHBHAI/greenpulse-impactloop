@@ -147,3 +147,14 @@ vite.config.ts.timestamp-*
 
 # Maven build output
 **/target/
+
+# Local ImpactLoop deployment and test artifacts
+/backend/live-issue-key.json
+/backend/outcome-key.json
+/backend/rain-event-key.json
+/backend/taskdef-current.json
+/backend/taskdef-register.json
+/backend/taskdef-register-v3.json
+
+# Outdated local ECS task definition
+/backend/ecs-task-definition.json
