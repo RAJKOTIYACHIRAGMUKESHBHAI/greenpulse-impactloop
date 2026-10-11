@@ -1,0 +1,29 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:PutItem",
+        "dynamodb:GetItem",
+        "dynamodb:Scan",
+        "dynamodb:UpdateItem"
+      ],
+      "Resource": [
+        "arn:aws:dynamodb:us-east-1:877133239869:table/ImpactLoopIssues",
+        "arn:aws:dynamodb:us-east-1:877133239869:table/ImpactLoopInterventions",
+        "arn:aws:dynamodb:us-east-1:877133239869:table/ImpactLoopEvidence",
+        "arn:aws:dynamodb:us-east-1:877133239869:table/ImpactLoopOutcomes",
+        "arn:aws:dynamodb:us-east-1:877133239869:table/ImpactLoopRainEvents"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:PutObject",
+        "s3:GetObject"
+      ],
+      "Resource": "arn:aws:s3:::impactloop-evidence-877133239869/*"
+    }
+  ]
+}
