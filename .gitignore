@@ -147,7 +147,10 @@ vite.config.ts.timestamp-*
 # IDE settings
 .idea/
 
-# Local deployment credentials and generated task definitions
+# Maven build output
+**/target/
+
+# Local ImpactLoop deployment and test artifacts
 /backend/live-issue-key.json
 /backend/outcome-key.json
 /backend/rain-event-key.json
